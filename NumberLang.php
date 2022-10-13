@@ -4,7 +4,10 @@ class NumberLang
 {
     static function toEnglish($number)
     {
-        $hyphen      = '-';
+        if(fmod($number, 1) !== 0.00){
+			$number = (float)$number;
+		}
+		$hyphen      = '-';
         $conjunction = ' and ';
         $separator   = ', ';
         $negative    = 'negative ';
@@ -52,10 +55,10 @@ class NumberLang
         }
 
         if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
-            trigger_error(
+            /*trigger_error(
                 'convert_number_to_words only accepts numbers between -' . PHP_INT_MAX . ' and ' . PHP_INT_MAX,
                 E_USER_WARNING
-            );
+            );*/
             return false;
         }
 
@@ -64,91 +67,131 @@ class NumberLang
         }
 
         $string = $fraction = null;
-        if (strpos($number, '.') !== false) {
-            list($number, $fraction) = explode('.', $number);
-        }
+		if(stripos(trim($number),'E')===FALSE){	
+			if (strpos($number, '.') !== false) {
+				list($number, $fraction) = explode('.', $number);
+			}
 
-        switch (true) {
-            case $number < 21:
-                $string = $dictionary[$number];
-                break;
-            case $number < 100:
-                $tens   = ((int) ($number / 10)) * 10;
-                $units  = $number % 10;
-                $string = $dictionary[$tens];
-                if ($units) {
-                    $string .= $hyphen . $dictionary[$units];
-                }
-                break;
-            case $number < 1000:
-                $hundreds  = $number / 100;
-                $remainder = $number % 100;
-                $string    = $dictionary[$hundreds] . ' ' . $dictionary[100];
-                if ($remainder) {
-                    $string .= $conjunction . self::toEnglish($remainder);
-                }
-                break;
-            default:
-                $baseUnit     = pow(1000, floor(log($number, 1000)));
-                $numBaseUnits = (int) ($number / $baseUnit);
-                $remainder    = $number % $baseUnit;
-                $string       = self::toEnglish($numBaseUnits) . ' ' . $dictionary[$baseUnit];
-                if ($remainder) {
-                    $string .= $remainder < 100 ? $conjunction : $separator;
-                    $string .= self::toEnglish($remainder);
-                }
-                break;
-        }
+			switch (true) {
+				case $number < 21:
+					$string = $dictionary[$number];
+					break;
+				case $number < 100:
+					$tens   = ((int) ($number / 10)) * 10;
+					$units  = $number % 10;
+					$string = $dictionary[$tens];
+					if ($units) {
+						$string .= $hyphen . $dictionary[$units];
+					}
+					break;
+				case $number < 1000:
+					$hundreds  = $number / 100;
+					$remainder = $number % 100;
+					$string    = $dictionary[$hundreds] . ' ' . $dictionary[100];
+					if ($remainder) {
+						$string .= $conjunction . self::toEnglish($remainder);
+					}
+					break;
+				default:
+					$baseUnit     = pow(1000, floor(log($number, 1000)));
+					$numBaseUnits = (int) ($number / $baseUnit);
+					$remainder    = $number % $baseUnit;
+					$string       = self::toEnglish($numBaseUnits) . ' ' . $dictionary[$baseUnit];
+					if ($remainder) {
+						$string .= $remainder < 100 ? $conjunction : $separator;
+						$string .= self::toEnglish($remainder);
+					}
+					break;
+			}
 
-        if (null !== $fraction && is_numeric($fraction)) {
-            $string .= $decimal;
-            $words = array();
-            foreach (str_split((string) $fraction) as $number) {
-                $words[] = $dictionary[$number];
-            }
-            $string .= implode(' ', $words);
-        }
+			if (null !== $fraction && is_numeric($fraction)) {
+				$string .= $decimal;
+				$words = array();
+				foreach (str_split((string) $fraction) as $number) {
+					$words[] = $dictionary[$number];
+				}
+				$string .= implode(' ', $words);
+			}
+		}
 
         return ucwords($string);
     }
 
 
 
-	static function toBahasa($number) {
-		if($number<0) {
-			$hasil = "minus ". trim(self::penyebut($number));
-		} else {
-			$hasil = trim(self::penyebut($number));
-		}           
-		return ucwords($hasil);
-	}	
+	static function toIndo($number) 
+	{	
+		$hasil = '';
+		if(stripos(trim($number),'E')===FALSE){		
+			if(fmod($number, 1) !== 0.00){
+				$number = (float)$number;
+				$numbs = explode(".",$number);
+				if($numbs[0]<0) {
+					$hasil.= "minus ". trim(self::penyebut($numbs[0]));
+				} else {
+					$hasil .= $numbs[0]==0 ? 'Nol' : trim(self::penyebut($numbs[0]));
+				}
+				
+				$hasil .= ' koma ';
+				
+				if($numbs[1]<0) {
+					$hasil.= "minus ". trim(self::penyebut($numbs[1]));
+				} else {
+					$hasil .= stripos(trim(self::penyebut($numbs[1])),'belas')!==FALSE ? "satu " : '';
 					
+					$new_num = ltrim($numbs[1], '0'); 
+					$zeros = strlen($numbs[1]) - strlen($new_num);
+					if($zeros>0){
+						for($i=1;$i<=$zeros;$i++){
+							$hasil .= 'Nol ';
+						}
+					}
+					$XS = str_replace([" puluh"," belas"," ratus"," ribu"," juta"," milyar"," trilyun"],["","","","","","",""],trim(self::penyebut($numbs[1])));
+					$hasil .= substr($XS,-3)=='Nol' ? str_replace(" Nol","",$XS) : $XS;
+				}
+			}else{
+				if($number<0) {
+					$hasil = "minus ". trim(self::penyebut($number));
+				} else {
+					$hasil = trim(self::penyebut($number));
+				}
+			}
+		}			
+		
+		return ucwords($hasil);
+	}						
 	
 	static function penyebut($nilai) {
 		$nilai = abs($nilai);
 		$huruf = array("", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas");
-		$temp = "";
-		if ($nilai < 12) {
-			$temp = " ". $huruf[$nilai];
-		} else if ($nilai <20) {
-			$temp = self::penyebut($nilai - 10). " belas";
-		} else if ($nilai < 100) {
-			$temp = self::penyebut($nilai/10)." puluh". self::penyebut($nilai % 10);
-		} else if ($nilai < 200) {
-			$temp = " seratus" . self::penyebut($nilai - 100);
-		} else if ($nilai < 1000) {
-			$temp = self::penyebut($nilai/100) . " ratus" . self::penyebut($nilai % 100);
-		} else if ($nilai < 2000) {
-			$temp = " seribu" . self::penyebut($nilai - 1000);
-		} else if ($nilai < 1000000) {
-			$temp = self::penyebut($nilai/1000) . " ribu" . self::penyebut($nilai % 1000);
-		} else if ($nilai < 1000000000) {
-			$temp = penyebut($nilai/1000000) . " juta" . self::penyebut($nilai % 1000000);
-		} else if ($nilai < 1000000000000) {
-			$temp = self::penyebut($nilai/1000000000) . " milyar" . self::penyebut(fmod($nilai,1000000000));
-		} else if ($nilai < 1000000000000000) {
-			$temp = self::penyebut($nilai/1000000000000) . " trilyun" . self::penyebut(fmod($nilai,1000000000000));
-		}     
+		$temp = "";				
+			if ($nilai < 12) {
+				$temp = " ". $huruf[$nilai];
+			} else if ($nilai <20) {
+				$temp = self::penyebut($nilai - 10). " belas";
+			} else if ($nilai < 100) {
+				$temp = self::penyebut($nilai/10)." puluh". self::penyebut($nilai % 10);
+			} else if ($nilai < 200) {
+				$temp = " seratus" . self::penyebut($nilai - 100);
+			} else if ($nilai < 1000) {
+				$temp = self::penyebut($nilai/100) . " ratus" . self::penyebut($nilai % 100);
+			} else if ($nilai < 2000) {
+				$temp = " seribu" . self::penyebut($nilai - 1000);
+			} else if ($nilai < 1000000) {
+				$temp = self::penyebut($nilai/1000) . " ribu" . self::penyebut($nilai % 1000);
+			} else if ($nilai < 1000000000) {
+				$temp = self::penyebut($nilai/1000000) . " juta" . self::penyebut($nilai % 1000000);
+			} else if ($nilai < 1000000000000) {
+				$temp = self::penyebut($nilai/1000000000) . " milyar" . self::penyebut(fmod($nilai,1000000000));
+			} else if ($nilai < 1000000000000000) {
+				$temp = self::penyebut($nilai/1000000000000) . " trilyun" . self::penyebut(fmod($nilai,1000000000000));
+			} else if ($nilai < 1000000000000000000) {
+				$temp = self::penyebut($nilai/1000000000000000) . " kuadriliun" . self::penyebut(fmod($nilai,1000000000000000));
+			} else if ($nilai < 1000000000000000000000) {
+				$temp = self::penyebut($nilai/1000000000000000000) . " kuintiliun" . self::penyebut(fmod($nilai,1000000000000000000));
+			} 	 		
+			
+			
 		return $temp;
 	}		
   
