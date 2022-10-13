@@ -11,9 +11,10 @@ echo NumberLang::toEnglish("1500");
 *//Output: One Thousand, Five Hundred*
 
 ***untuk kebahasa Indonesia***
+
 echo NumberLang::toBahasa("1500");
 
 *//Output: Seribu Lima Ratus*
 
 
-Class kebahasa Inggris dari [barokurniawan/CurencyLang.php](https://gist.github.com/barokurniawan/45097f3d5595ea038cc30c1cdf7b90dc).
+*Class kebahasa Inggris dari [barokurniawan/CurencyLang.php](https://gist.github.com/barokurniawan/45097f3d5595ea038cc30c1cdf7b90dc).*
